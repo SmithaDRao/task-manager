@@ -5,3 +5,15 @@
 #currentDate {
     font-size: 1.5rem;
 }
+
+#loading {
+    display: none;
+}
+
+body{
+    background-color: #171400;
+    background-image: url("https://www.transparenttextures.com/patterns/brick-wall.png");
+ 
+
+
+}

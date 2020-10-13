@@ -33,6 +33,7 @@ const StorageCtrl = (function(){
         localStorage.setItem('items', JSON.stringify(items));
       }
     },
+    // get items from localStorage
     getItemsFromStorage: function(){
       let items;
       if(localStorage.getItem('items') === null){
@@ -42,6 +43,7 @@ const StorageCtrl = (function(){
       }
       return items;
     },
+    //  update item in the localStorage
     updateItemStorage: function(updatedItem){
       let items = JSON.parse(localStorage.getItem('items'));
 
@@ -52,6 +54,8 @@ const StorageCtrl = (function(){
       });
       localStorage.setItem('items', JSON.stringify(items));
     },
+
+    // delete item in the localStorage
     deleteItemFromStorage: function(id){
      
       let items = JSON.parse(localStorage.getItem('items'));
@@ -63,21 +67,40 @@ const StorageCtrl = (function(){
       });
       localStorage.setItem('items', JSON.stringify(items));
     },
+
     clearItemsFromStorage: function(){
       if (confirm(`Permanently remove from list?` ))
-      {localStorage.removeItem('items');}
-      {location.reload();}
+      
+      { document.querySelector('#loading').style.display = "block";
+
+        localStorage.removeItem('items');
+       }
+       {location.reload();
+        document.querySelector('#loading').style.display = "block";
+      }
     } 
   }
 })();
 
+//     clearItemsFromStorage: function(){
+//       if (confirm(`Permanently remove from list?` )){
+// document.querySelector('#loading').style.display = "block";
+//  localStorage.removeItem('items');
+//       setTimeout(function(){ 
+//      document.querySelector('#loading').style.display = "none";
+//     location.reload(); 
+//   }, 3000);}
+//   }
+  
 
 // Item Controller
 const ItemCtrl = (function(){
   // Item Constructor
-  const Item = function(id, name, date){
+  const Item = function(id, name, assignTo, description, date){
     this.id = id;
     this.name = name;
+    this.assignTo = assignTo;
+    this.description = description;
     this.date = date;
   }
 
@@ -92,7 +115,7 @@ const ItemCtrl = (function(){
     getItems: function(){
       return data.items;
     },
-    addItem: function(name, date){
+    addItem: function(name, assignTo, description, date){
       let ID;
       // Create ID
       if(data.items.length > 0){
@@ -102,7 +125,7 @@ const ItemCtrl = (function(){
       }
 
       // Create new item
-      newItem = new Item(ID, name, date);
+      newItem = new Item(ID, name, assignTo, description, date);
 
       // Add to items array
       data.items.push(newItem);
@@ -119,13 +142,15 @@ const ItemCtrl = (function(){
       });
       return found;
     },
-    updateItem: function(name, date){
+    updateItem: function(name, assignTo, description, date){
 
       let found = null;
 
       data.items.forEach(function(item){
         if(item.id === data.currentItem.id){
           item.name = name;
+          item.assignTo = assignTo;
+          item.description = description;
           item.date = date;
           found = item;
         }
@@ -145,6 +170,7 @@ const ItemCtrl = (function(){
       data.items.splice(index, 1);
     },
     clearAllItems: function(){
+      
       data.items = [];
     },
     setCurrentItem: function(item){
@@ -187,6 +213,8 @@ const UICtrl = (function(){
     clearBtn: '.clear-btn',
     itemNameInput: '#item-name',
     itemInput: '.form-control',
+    assignTo: '#assign-to',
+    description: '#description'
   }
   
   // Public methods
@@ -197,6 +225,9 @@ const UICtrl = (function(){
       items.forEach(function(item){
         html += `<li class="collection-item" id="item-${item.id}">
         <strong>${item.name}: </strong> <em> Due to ${item.date} </em>
+        <br>
+        <em>Assign To: ${item.assignTo} &nbsp;&nbsp;&nbsp; 
+        <br>Description: ${item.description}</em>
         <a href="#" class="secondary-content">
           <i class="edit-item fa fa-pencil"></i>
         </a>
@@ -211,6 +242,10 @@ const UICtrl = (function(){
     getItemInput: function(){
       return {
         name:document.querySelector(UISelectors.itemNameInput).value,
+        assignTo:document.querySelector
+        (UISelectors.assignTo).value,
+        description:document.querySelector
+        (UISelectors.description).value,
         date:document.querySelector(UISelectors.itemInput).value
       }
     },
@@ -225,6 +260,9 @@ const UICtrl = (function(){
       li.id = `item-${item.id}`;
       // Add HTML
       li.innerHTML = `<strong>${item.name}: </strong> <em> Due to ${item.date} </em>
+      <br>
+      <em>Assign To: ${item.assignTo} &nbsp;&nbsp;&nbsp; 
+      <br>Description: ${item.description}</em>
       <a href="#" class="secondary-content">
         <i class="edit-item fa fa-pencil"></i>
       </a>`;
@@ -242,6 +280,10 @@ const UICtrl = (function(){
 
         if(itemID === `item-${item.id}`){
           document.querySelector(`#${itemID}`).innerHTML = `<strong>${item.name}: </strong> <em> Due to ${item.date}</em>
+          <br>
+          <em>Assign To: ${item.assignTo} &nbsp;&nbsp;&nbsp; 
+          <br>
+          Description: ${item.description}</em>
           <a href="#" class="secondary-content">
             <i class="edit-item fa fa-pencil"></i>
           </a>`;
@@ -255,10 +297,14 @@ const UICtrl = (function(){
     },
     clearInput: function(){
       document.querySelector(UISelectors.itemNameInput).value = '';
+      document.querySelector(UISelectors.assignTo).value = '';
+      document.querySelector(UISelectors.description).value = '';
       document.querySelector(UISelectors.itemInput).value = '';
     },
     addItemToForm: function(){
       document.querySelector(UISelectors.itemNameInput).value = ItemCtrl.getCurrentItem().name;
+      document.querySelector(UISelectors.assignTo).value = ItemCtrl.getCurrentItem().assignTo;
+      document.querySelector(UISelectors.description).value = ItemCtrl.getCurrentItem().description;
       document.querySelector(UISelectors.itemInput).value = ItemCtrl.getCurrentItem().date;
       UICtrl.showEditState();
     },
@@ -349,7 +395,7 @@ const App = (function(ItemCtrl, StorageCtrl, UICtrl){
        
       // else
       // Add item
-      const newItem = ItemCtrl.addItem(input.name, input.date);
+      const newItem = ItemCtrl.addItem(input.name, input.assignTo, input.description, input.date);
 
       // Add item to UI list
       UICtrl.addListItem(newItem);
@@ -396,7 +442,7 @@ const App = (function(ItemCtrl, StorageCtrl, UICtrl){
     const input = UICtrl.getItemInput();
 
     // Update item
-    const updatedItem = ItemCtrl.updateItem(input.name, input.date);
+    const updatedItem = ItemCtrl.updateItem(input.name, input.assignTo, input.description, input.date);
 
     // Update UI
     UICtrl.updateListItem(updatedItem);
@@ -411,6 +457,8 @@ const App = (function(ItemCtrl, StorageCtrl, UICtrl){
 
   // Delete button event
   const itemDeleteSubmit = function(e){
+
+    e.preventDefault();
     // Get current item
     const currentItem = ItemCtrl.getCurrentItem();
 
@@ -424,14 +472,13 @@ const App = (function(ItemCtrl, StorageCtrl, UICtrl){
     StorageCtrl.deleteItemFromStorage(currentItem.id);
 
     UICtrl.clearEditState();
-
-    e.preventDefault();
   }
 
 
   // Clear items event
   const clearAllItemsClick = function(){
     
+    document.querySelector('#loading').style.display = "block";
     // Delete all items from data structure
     ItemCtrl.clearAllItems();
 
@@ -440,11 +487,12 @@ const App = (function(ItemCtrl, StorageCtrl, UICtrl){
 
     // Clear from local storage
     StorageCtrl.clearItemsFromStorage();
+   
 
     // Hide UL
     UICtrl.hideList();
-    
-  }
+    }
+  
 
   // Public methods
   return {
